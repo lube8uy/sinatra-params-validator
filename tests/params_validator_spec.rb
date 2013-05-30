@@ -15,14 +15,14 @@ describe "Rack::Validator test" do
 	end
 
 	it "should downcase params" do
-		params = {"one" => "BEFORE", "two" => 2, "three" => nil}
+		params = {"one" => "BEFORE", "two" => "2", "three" => nil}
 		validator = Rack::Validator.new(params, false)
 		validator.downcase([:one, :two, :three, :not_exists])
 		params["one"][/[A-Z]/].should == nil
 	end
 
 	it "should not return an error when all params are present" do
-		params = {"one" => 1, "two" => 2, "three" => 3, "four" => 4}
+		params = {"one" => "1", "two" => "2", "three" => "3", "four" => "4"}
 		validator = Rack::Validator.new(params, false)
 		validator.required(["one", "three"])
 		validator.has_errors?.should == false
@@ -31,7 +31,7 @@ describe "Rack::Validator test" do
 	end
 
 	it "should return an error when params are missing" do
-		params = {"one" => 1, "two" => 2, "three" => 3, "four" => 4}
+		params = {"one" => "1", "two" => "2", "three" => "3", "four" => "4"}
 		validator = Rack::Validator.new(params, false)
 		validator.required(["one", "five", "three", "six"])
 		validator.has_errors?.should == true
@@ -50,7 +50,7 @@ describe "Rack::Validator test" do
 	end
 
 	it "should return is_float = true for integers or floats" do
-		params = {"one" => 1, "three" => 3.5, "four" => -99, "five" => "5", "six" => "8.9", "seven" => -99.98}
+		params = {"one" => "1", "three" => "3.5", "four" => "-99", "five" => "5", "six" => "8.9", "seven" => "-99.98"}
 		validator = Rack::Validator.new(params, false)
 		validator.is_float("three")
 		validator.is_float("six")
@@ -176,12 +176,31 @@ describe "Rack::Validator test" do
 		validator.has_errors?.should == false
 	end
 
+  it "should not return errors when parameter value is boolean" do
+    params = {"one" => "true", "two" => "false"}
+    validator = Rack::Validator.new(params, false)
+    validator.is_boolean("one")
+    validator.is_boolean("two")
+    validator.invalid_params.should == []
+    validator.has_errors?.should == false
+  end
+
+  it "should return errors when parameter value is not boolean" do
+    params = {"one" => "truee", "two" => "false"}
+    validator = Rack::Validator.new(params, false)
+    validator.is_boolean("one")
+    validator.is_boolean("two")
+    validator.invalid_params.size.should == 1
+    validator.invalid_params.should == ["one"]
+    validator.has_errors?.should == true
+  end
+
 	it "should not return errors when a expression matches a regexp" do
 		params = {"one" => "hey ho"}
 		validator = Rack::Validator.new(params, false)
 		validator.matches(/hey/, "one")
 		validator.has_errors?.should == false
-	end
+  end
 
 	it "should return an error when a expression doesn't match a regexp" do
 		params = {"one" => "lets go"}

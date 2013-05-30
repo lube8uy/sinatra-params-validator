@@ -60,7 +60,8 @@ class App < Sinatra::Base
   end
 
   validation_required :POST, '/group', :params => [
-    { :name => :name, :required => true }
+    { :name => :name, :required => true },
+    { :name => :private, :type => :boolean, :required => true }
   ]
 
   post '/group' do
@@ -111,6 +112,7 @@ Available methods:
 * is_in_range
 * is_less_equal_than
 * is_email
+* is_boolean
 * matches
 
 To see more examples check tests/params_validator_spec.rb
