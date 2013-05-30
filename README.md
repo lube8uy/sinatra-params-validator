@@ -18,7 +18,12 @@ with some middleware.
 
 ### Examples
 
+```
+$ gem install sinatra-params-validator
+```
+
 ```ruby
+require 'rack/validator/sinatra'
 require 'sinatra'
 
 class App < Sinatra::Base
