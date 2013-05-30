@@ -14,5 +14,5 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  rack
-  sinatra
+  rack (= 1.5.2)
+  sinatra (= 1.4.2)

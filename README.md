@@ -3,15 +3,15 @@
 
 ## Description
 
-This little project to validate and clean data from sinatra params variable.
-It can be used as a sinatra extension and would act as a before filter.
-You can configure it with the new sinatra method `validation_required`.
+This sinatra module validates the incoming parameter and lets you configure the pattern.
+Once it's registered with your sinatra app, it will act as a before filter, that validates your parameters.
+You can configure it with the newly available sinatra method `validation_required`.
 
 ## Sinatra Module
 
 Configure your routes to require parameters and validate their values. If the
 validator finds errors, it will execute sinatras halt method, which will prevent
-invocation of your sinatra code block, and set the reponse status to 400. The missing
+invocation of your sinatra code block, and set the response status to 400. The missing
 or invalid parameters can be found in the environment variable, like in the example
 below. That means you can customize your own error responses, for example by catching the errors
 with some middleware.
@@ -82,7 +82,7 @@ Can be used for an adopter for other libraries/frameworks, like rails.
 Initialize class in lazy mode, this means that once a validation fail the following ones are not executed:
 
 ```ruby
-validator = ParamsValidator.new(params)
+validator = Rack::Validator.new(params)
 #required_3 is not present
 validator.required [:required_1, :required_2, :required_3]
 validator.trim
@@ -98,7 +98,7 @@ end
 ```
 
 If you want to get all the errors at the end of the validation calls pass false as second parameter in the constructor:
-	validator = ParamsValidator.new(params, true)
+	validator = Rack::Validator.new(params, true)
 	
 Available methods:
 
