@@ -32,7 +32,7 @@ module Rack
       if lazy_check_disabled
         keys.each { |k|
           k = k.to_s
-          unless @params.has_key?(k)
+          unless @params.has_key?(k) && !@params[k].empty?
             @invalid_params.push(k)
             @missing_params.push(k)
             @messages.push("#{k} is required")
@@ -127,6 +127,16 @@ module Rack
       end
     end
 
+    def is_boolean(key)
+      if lazy_check_disabled
+        key = key.to_s
+        unless @params[key] == 'true' || @params[key] == 'false'
+          @invalid_params.push(key)
+          @messages.push("#{key} is not a boolean")
+        end
+      end
+    end
+
     def matches(regexp, key)
       if lazy_check_disabled
         key = key.to_s
@@ -174,6 +184,7 @@ module Rack
           float_params = [ ]
           email_params = [ ]
           range_params = [ ]
+          boolean_params = [ ]
           matches_params = [ ]
           default_params = [ ]
 
@@ -183,11 +194,13 @@ module Rack
             float_params << (param) if param[:type] == :float
             email_params << (param) if param[:type] == :email
             range_params << (param) if param[:range]
+            boolean_params << (param) if param[:type] == :boolean
             matches_params << (param) if param[:matches]
             default_params << (param) if param[:default]
           end
 
           validator.required required_params
+
           integer_params.each do |param|
             validator.is_integer param[:name] unless params[param[:name].to_s].nil?
           end
@@ -199,6 +212,9 @@ module Rack
           end
           range_params.each do |param|
             validator.is_in_range param[:range].first, param[:range].last, param[:name] unless params[param[:name].to_s].nil?
+          end
+          boolean_params.each do |param|
+            validator.is_boolean param[:name] unless params[param[:name].to_s].nil?
           end
           matches_params.each do |param|
             validator.matches param[:matches], param[:name] unless params[param[:name].to_s].nil?
