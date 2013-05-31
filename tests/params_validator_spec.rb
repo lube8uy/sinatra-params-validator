@@ -23,7 +23,14 @@ describe "Rack::Validator test" do
 		params["one"].should == "before"
     params["two"].should == "2"
     params["three"].should == nil
-	end
+  end
+
+  it "should clean all the params" do
+    params = {"one" => "BEFORE", "two" => "2", "three" => nil}
+    validator = Rack::Validator.new(params, false)
+    validator.clean_parameters %{one two}
+    validator.params.size.should == 2
+  end
 
 	it "should not return an error when all params are present" do
 		params = {"one" => "1", "two" => "2", "three" => "3", "four" => "4"}

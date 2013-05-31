@@ -80,6 +80,10 @@ end
 
 Try it out yourself and run this in the root directory `rackup example/app.rb`.
 
+__NOTE__ Every parameter that is used for that particular request needs to be mentioned in the params
+array. Every parameter that hasn't been mentioned will be delete and won't be available in the sinatra
+`params` variable when your sinatra code block is invoked.
+
 ## Validator class
 
 A class with several methods to validate and clean data from sinatra params holder.
@@ -127,5 +131,11 @@ Available methods:
 * is_set
 * is_boolean
 * matches
+* clean_parameters
 
 To see more examples check tests/params_validator_spec.rb
+
+## Contribution
+
+If you like the project, fork me and help make sinatra better.
+Make sure to include test cases and explanation for the implemented feature.

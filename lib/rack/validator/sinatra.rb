@@ -6,6 +6,7 @@ module Rack
     attr_reader :invalid_params
     attr_reader :missing_params
     attr_reader :messages
+    attr_reader :params
     attr_accessor :lazy_mode
 
     def initialize(params, lazy_mode = true)
@@ -21,7 +22,7 @@ module Rack
     end
 
     def trim(key)
-      @params[key] = @params[key].strip if @params[key]
+      @params[key.to_s] = @params[key.to_s].strip if @params[key.to_s]
     end
 
     def downcase(key)
@@ -157,6 +158,12 @@ module Rack
       end
     end
 
+    def clean_parameters(all_parameters)
+      @params.each_key do |key|
+        @params.delete key.to_s unless all_parameters.include? key.to_s
+      end
+    end
+
     private
 
     def lazy_check_disabled
@@ -189,6 +196,7 @@ module Rack
         # TODO: Needs a general cleanup!!!
         def validate_parameters(options)
           validator = Rack::Validator.new params, false
+          all_params = [ ]
           required_params = [ ]
           integer_params = [ ]
           float_params = [ ]
@@ -201,6 +209,7 @@ module Rack
           action_params = [ ]
 
           options[:params].each do |param|
+            all_params << (param[:name].to_s)
             required_params << (param[:name]) if param[:required]
             integer_params << (param) if param[:type] == :integer
             float_params << (param) if param[:type] == :float
@@ -212,6 +221,8 @@ module Rack
             default_params << (param) if param[:default]
             action_params << (param) if param[:action]
           end
+
+          validator.clean_parameters all_params
 
           validator.required required_params
 
