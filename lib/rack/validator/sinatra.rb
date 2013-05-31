@@ -6,6 +6,7 @@ module Rack
     attr_reader :invalid_params
     attr_reader :missing_params
     attr_reader :messages
+    attr_reader :params
     attr_accessor :lazy_mode
 
     def initialize(params, lazy_mode = true)
@@ -20,12 +21,12 @@ module Rack
       @invalid_params.length > 0 or @missing_params.length > 0
     end
 
-    def trim
-      @params.each_key { |k| @params[k] = @params[k].strip if @params[k]}
+    def trim(key)
+      @params[key.to_s] = @params[key.to_s].strip if @params[key.to_s]
     end
 
-    def downcase(keys)
-      keys.each { |k| @params[k.to_s] = @params[k.to_s].to_s.downcase if @params[k.to_s]}
+    def downcase(key)
+      @params[key.to_s] = @params[key.to_s].to_s.downcase if @params[key.to_s]
     end
 
     def required(keys)
@@ -127,6 +128,16 @@ module Rack
       end
     end
 
+    def is_set(array, key)
+      if lazy_check_disabled
+        key = key.to_s
+        unless array.include? @params[key]
+          @invalid_params.push(key)
+          @messages.push("#{key} does not match #{array}")
+        end
+      end
+    end
+
     def is_boolean(key)
       if lazy_check_disabled
         key = key.to_s
@@ -144,6 +155,12 @@ module Rack
           @invalid_params.push(key)
           @messages.push("#{key} is not a valid expression")
         end
+      end
+    end
+
+    def clean_parameters(all_parameters)
+      @params.each_key do |key|
+        @params.delete key.to_s unless all_parameters.include? key.to_s
       end
     end
 
@@ -179,25 +196,33 @@ module Rack
         # TODO: Needs a general cleanup!!!
         def validate_parameters(options)
           validator = Rack::Validator.new params, false
+          all_params = [ ]
           required_params = [ ]
           integer_params = [ ]
           float_params = [ ]
           email_params = [ ]
           range_params = [ ]
+          set_params = [ ]
           boolean_params = [ ]
           matches_params = [ ]
           default_params = [ ]
+          action_params = [ ]
 
           options[:params].each do |param|
+            all_params << (param[:name].to_s)
             required_params << (param[:name]) if param[:required]
             integer_params << (param) if param[:type] == :integer
             float_params << (param) if param[:type] == :float
             email_params << (param) if param[:type] == :email
             range_params << (param) if param[:range]
+            set_params << (param) if param[:set]
             boolean_params << (param) if param[:type] == :boolean
             matches_params << (param) if param[:matches]
             default_params << (param) if param[:default]
+            action_params << (param) if param[:action]
           end
+
+          validator.clean_parameters all_params
 
           validator.required required_params
 
@@ -213,6 +238,9 @@ module Rack
           range_params.each do |param|
             validator.is_in_range param[:range].first, param[:range].last, param[:name] unless params[param[:name].to_s].nil?
           end
+          set_params.each do |param|
+            validator.is_set param[:set], param[:name] unless params[param[:name].to_s].nil?
+          end
           boolean_params.each do |param|
             validator.is_boolean param[:name] unless params[param[:name].to_s].nil?
           end
@@ -226,6 +254,11 @@ module Rack
               validator.invalid_params.delete param[:name]
               validator.missing_params.delete param[:name]
             end
+          end
+
+          action_params.each do |param|
+            validator.downcase param[:name] if param[:action].include? :downcase
+            validator.trim param[:name] if param[:action].include? :trim
           end
 
           if validator.has_errors?

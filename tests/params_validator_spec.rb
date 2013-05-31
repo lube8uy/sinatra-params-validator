@@ -6,20 +6,31 @@ describe "Rack::Validator test" do
 	it "should trim all params" do
 		params = {"one" => "  before", "two" => "after  ",  "three" => "  everywhere ", "four" => nil}
 		validator = Rack::Validator.new(params, false)
-		validator.trim()
-		params.keys.each{ |k|
-			if params[k]
-				params[k][/\s/].should == nil
-			end
-		}
+		validator.trim("one")
+    validator.trim("two")
+    validator.trim("three")
+    validator.trim("four")
+		params["one"].should == "before"
+    params["two"].should == "after"
+    params["three"].should == "everywhere"
+    params["four"].should == nil
 	end
 
 	it "should downcase params" do
 		params = {"one" => "BEFORE", "two" => "2", "three" => nil}
 		validator = Rack::Validator.new(params, false)
-		validator.downcase([:one, :two, :three, :not_exists])
-		params["one"][/[A-Z]/].should == nil
-	end
+		validator.downcase("one")
+		params["one"].should == "before"
+    params["two"].should == "2"
+    params["three"].should == nil
+  end
+
+  it "should clean all the params" do
+    params = {"one" => "BEFORE", "two" => "2", "three" => nil}
+    validator = Rack::Validator.new(params, false)
+    validator.clean_parameters %{one two}
+    validator.params.size.should == 2
+  end
 
 	it "should not return an error when all params are present" do
 		params = {"one" => "1", "two" => "2", "three" => "3", "four" => "4"}
@@ -174,7 +185,23 @@ describe "Rack::Validator test" do
 		validator.is_email("four")
 		validator.invalid_params.should == []
 		validator.has_errors?.should == false
-	end
+  end
+
+  it "should not return errors when the parameter value matches the set" do
+    params = {"one" => "public"}
+    validator = Rack::Validator.new(params, false)
+    validator.is_set(%{public private}, "one")
+    validator.invalid_params.should == []
+    validator.has_errors?.should == false
+  end
+
+  it "should return errors when the parameter value does not match the set" do
+    params = {"one" => "publicc"}
+    validator = Rack::Validator.new(params, false)
+    validator.is_set(%{public private}, "one")
+    validator.invalid_params.size.should == 1
+    validator.has_errors?.should == true
+  end
 
   it "should not return errors when parameter value is boolean" do
     params = {"one" => "true", "two" => "false"}

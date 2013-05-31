@@ -66,7 +66,9 @@ class App < Sinatra::Base
 
   validation_required :POST, '/group', :params => [
     { :name => :name, :required => true },
-    { :name => :private, :type => :boolean, :required => true }
+    { :name => :private, :type => :boolean, :required => true },
+    { :name => :type, :set => %{public private}, :default => 'public' },
+    { :name => :param, :action => [ :trim, :downcase ] }
   ]
 
   post '/group' do
@@ -78,23 +80,32 @@ end
 
 Try it out yourself and run this in the root directory `rackup example/app.rb`.
 
+__NOTE__ Every parameter that is used for that particular request needs to be mentioned in the params
+array. Every parameter that hasn't been mentioned will be delete and won't be available in the sinatra
+`params` variable when your sinatra code block is invoked.
+
 ## Validator class
 
 A class with several methods to validate and clean data from sinatra params holder.
-Can be used for an adopter for other libraries/frameworks, like rails.
+Can be used as a basis for an adopter for other libraries/frameworks, like rails.
 
 ### Examples
 
 Initialize class in lazy mode, this means that once a validation fail the following ones are not executed:
 
 ```ruby
+require 'rack/validator'
+
 validator = Rack::Validator.new(params)
 #required_3 is not present
 validator.required [:required_1, :required_2, :required_3]
-validator.trim
-validator.downcase [:required_2, :other_param]
+validator.trim :required_1
+validator.downcase :required_2
+validator.downcase :other
 validator.is_in_range 3, 32, :required_1
 validator.is_email :contact
+validator.is_boolean :private
+validator.is_set %{public private}, :type
 validator.matches /[a-z]{2}_[A-Z]{2}|[a-z]{2}/i, :locale
 
 if validator.has_errors?
@@ -117,7 +128,14 @@ Available methods:
 * is_in_range
 * is_less_equal_than
 * is_email
+* is_set
 * is_boolean
 * matches
+* clean_parameters
 
 To see more examples check tests/params_validator_spec.rb
+
+## Contribution
+
+If you like the project, fork me and help make sinatra better.
+Make sure to include test cases and explanation for the implemented feature.
