@@ -127,6 +127,16 @@ module Rack
       end
     end
 
+    def is_set(array, key)
+      if lazy_check_disabled
+        key = key.to_s
+        unless array.include? @params[key]
+          @invalid_params.push(key)
+          @messages.push("#{key} does not match #{array}")
+        end
+      end
+    end
+
     def is_boolean(key)
       if lazy_check_disabled
         key = key.to_s
@@ -184,6 +194,7 @@ module Rack
           float_params = [ ]
           email_params = [ ]
           range_params = [ ]
+          set_params = [ ]
           boolean_params = [ ]
           matches_params = [ ]
           default_params = [ ]
@@ -194,6 +205,7 @@ module Rack
             float_params << (param) if param[:type] == :float
             email_params << (param) if param[:type] == :email
             range_params << (param) if param[:range]
+            set_params << (param) if param[:set]
             boolean_params << (param) if param[:type] == :boolean
             matches_params << (param) if param[:matches]
             default_params << (param) if param[:default]
@@ -212,6 +224,9 @@ module Rack
           end
           range_params.each do |param|
             validator.is_in_range param[:range].first, param[:range].last, param[:name] unless params[param[:name].to_s].nil?
+          end
+          set_params.each do |param|
+            validator.is_set param[:set], param[:name] unless params[param[:name].to_s].nil?
           end
           boolean_params.each do |param|
             validator.is_boolean param[:name] unless params[param[:name].to_s].nil?

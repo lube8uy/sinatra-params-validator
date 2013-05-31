@@ -66,7 +66,8 @@ class App < Sinatra::Base
 
   validation_required :POST, '/group', :params => [
     { :name => :name, :required => true },
-    { :name => :private, :type => :boolean, :required => true }
+    { :name => :private, :type => :boolean, :required => true },
+    { :name => :type, :set => %{public private}, :default => 'public' }
   ]
 
   post '/group' do

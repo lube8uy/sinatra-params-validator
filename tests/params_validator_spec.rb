@@ -174,7 +174,23 @@ describe "Rack::Validator test" do
 		validator.is_email("four")
 		validator.invalid_params.should == []
 		validator.has_errors?.should == false
-	end
+  end
+
+  it "should not return errors when the parameter value matches the set" do
+    params = {"one" => "public"}
+    validator = Rack::Validator.new(params, false)
+    validator.is_set(%{public private}, "one")
+    validator.invalid_params.should == []
+    validator.has_errors?.should == false
+  end
+
+  it "should return errors when the parameter value does not match the set" do
+    params = {"one" => "publicc"}
+    validator = Rack::Validator.new(params, false)
+    validator.is_set(%{public private}, "one")
+    validator.invalid_params.size.should == 1
+    validator.has_errors?.should == true
+  end
 
   it "should not return errors when parameter value is boolean" do
     params = {"one" => "true", "two" => "false"}
