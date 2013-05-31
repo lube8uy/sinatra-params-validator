@@ -20,12 +20,12 @@ module Rack
       @invalid_params.length > 0 or @missing_params.length > 0
     end
 
-    def trim
-      @params.each_key { |k| @params[k] = @params[k].strip if @params[k]}
+    def trim(key)
+      @params[key] = @params[key].strip if @params[key]
     end
 
-    def downcase(keys)
-      keys.each { |k| @params[k.to_s] = @params[k.to_s].to_s.downcase if @params[k.to_s]}
+    def downcase(key)
+      @params[key.to_s] = @params[key.to_s].to_s.downcase if @params[key.to_s]
     end
 
     def required(keys)
@@ -198,6 +198,7 @@ module Rack
           boolean_params = [ ]
           matches_params = [ ]
           default_params = [ ]
+          action_params = [ ]
 
           options[:params].each do |param|
             required_params << (param[:name]) if param[:required]
@@ -209,6 +210,7 @@ module Rack
             boolean_params << (param) if param[:type] == :boolean
             matches_params << (param) if param[:matches]
             default_params << (param) if param[:default]
+            action_params << (param) if param[:action]
           end
 
           validator.required required_params
@@ -241,6 +243,11 @@ module Rack
               validator.invalid_params.delete param[:name]
               validator.missing_params.delete param[:name]
             end
+          end
+
+          action_params.each do |param|
+            validator.downcase param[:name] if param[:action].include? :downcase
+            validator.trim param[:name] if param[:action].include? :trim
           end
 
           if validator.has_errors?
