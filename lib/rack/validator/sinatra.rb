@@ -36,7 +36,7 @@ module Rack
           unless @params.has_key?(k) && !@params[k].empty?
             @invalid_params.push(k)
             @missing_params.push(k)
-            @messages.push("#{k} is required")
+            @messages.push(:name => k, :error => :REQUIRED)
           end
         }
       end
@@ -48,7 +48,7 @@ module Rack
         value = @params[key]
         unless is_valid_integer(value)
           @invalid_params.push(key)
-          @messages.push("#{key} is not an integer")
+          @messages.push(:name => key, :error => :NOT_INTEGER)
         end
       end
     end
@@ -59,7 +59,7 @@ module Rack
         value = @params[key]
         unless is_valid_float(value)
           @invalid_params.push(key)
-          @messages.push("#{key} is not a float")
+          @messages.push(:name => key, :error => :NOT_FLOAT)
         end
       end
     end
@@ -70,13 +70,13 @@ module Rack
         if !is_valid_float(@params[key])
           if !@params[key] || @params[key].length < min
             @invalid_params.push(key)
-            @messages.push("#{key} length is less than #{min}")
+            @messages.push(:name => key, :error => :LESS_THAN, :value => min)
           end
         else
           value = is_valid_integer(@params[key]) ? @params[key].to_i : @params[key].to_f
           if  !value || value < min
             @invalid_params.push(key)
-            @messages.push("#{key} is less than #{min}")
+            @messages.push(:name => key, :error => :LESS_THAN, :value => min)
           end
         end
       end
@@ -88,13 +88,13 @@ module Rack
         unless is_valid_float(@params[key])
           if !@params[key] || @params[key].length < min || @params[key].length > max
             @invalid_params.push(key)
-            @messages.push("#{key} length is not in range #{min},#{max}")
+            @messages.push(:name => key, :error => :NOT_IN_RANGE, :value => [ min, max ])
           end
         else
           value = is_valid_integer(@params[key]) ? @params[key].to_i : @params[key].to_f
           if !value || value < min || value > max
             @invalid_params.push(key)
-            @messages.push("#{key} is not in range #{min},#{max}")
+            @messages.push(:name => key, :error => :NOT_IN_RANGE, :value => [ min, max ])
           end
         end
       end
@@ -106,13 +106,13 @@ module Rack
         unless is_valid_float(@params[key])
           if !@params[key] || @params[key].length > max
             @invalid_params.push(key)
-            @messages.push("#{key} length is greater than #{max}")
+            @messages.push(:name => key, :error => :GREATER_THAN, :value => max)
           end
         else
           value = is_valid_integer(@params[key]) ? @params[key].to_i : @params[key].to_f
           if !value || value > max
             @invalid_params.push(key)
-            @messages.push("#{key} is greater than #{max}")
+            @messages.push(:name => key, :error => :GREATER_THAN, :value => max)
           end
         end
       end
@@ -123,7 +123,7 @@ module Rack
         key = key.to_s
         unless @params[key].to_s[/^\S+@\S+\.\S+$/]
           @invalid_params.push(key)
-          @messages.push("#{key} is not a valid email")
+          @messages.push(:name => key, :error => :NOT_VALID_EMAIL)
         end
       end
     end
@@ -133,7 +133,7 @@ module Rack
         key = key.to_s
         unless array.include? @params[key]
           @invalid_params.push(key)
-          @messages.push("#{key} does not match #{array}")
+          @messages.push(:name => key, :error => :NOT_IN_SET, :value => array)
         end
       end
     end
@@ -143,7 +143,7 @@ module Rack
         key = key.to_s
         unless @params[key] == 'true' || @params[key] == 'false'
           @invalid_params.push(key)
-          @messages.push("#{key} is not a boolean")
+          @messages.push(:name => key, :error => :NOT_BOOLEAN)
         end
       end
     end
@@ -153,7 +153,7 @@ module Rack
         key = key.to_s
         unless @params[key] =~ regexp
           @invalid_params.push(key)
-          @messages.push("#{key} is not a valid expression")
+          @messages.push(:name => key, :error => :NOT_MATCHED, :value => regexp)
         end
       end
     end

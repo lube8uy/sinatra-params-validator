@@ -28,7 +28,7 @@ describe "Rack::Validator test" do
   it "should clean all the params" do
     params = {"one" => "BEFORE", "two" => "2", "three" => nil}
     validator = Rack::Validator.new(params, false)
-    validator.clean_parameters %{one two}
+    validator.clean_parameters ["one", "two"]
     validator.params.size.should == 2
   end
 
@@ -47,7 +47,6 @@ describe "Rack::Validator test" do
 		validator.required(["one", "five", "three", "six"])
 		validator.has_errors?.should == true
 		validator.invalid_params.should == ["five", "six"]
-		validator.messages.should == ["five is required", "six is required"]
 	end
 
 	it "should return is_int = true for integers" do
@@ -190,7 +189,7 @@ describe "Rack::Validator test" do
   it "should not return errors when the parameter value matches the set" do
     params = {"one" => "public"}
     validator = Rack::Validator.new(params, false)
-    validator.is_set(%{public private}, "one")
+    validator.is_set(["public", "private"], "one")
     validator.invalid_params.should == []
     validator.has_errors?.should == false
   end
@@ -198,7 +197,7 @@ describe "Rack::Validator test" do
   it "should return errors when the parameter value does not match the set" do
     params = {"one" => "publicc"}
     validator = Rack::Validator.new(params, false)
-    validator.is_set(%{public private}, "one")
+    validator.is_set(["public", "private"], "one")
     validator.invalid_params.size.should == 1
     validator.has_errors?.should == true
   end
