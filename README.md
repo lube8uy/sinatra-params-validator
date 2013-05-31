@@ -84,6 +84,27 @@ __NOTE__ Every parameter that is used for that particular request needs to be me
 array. Every parameter that hasn't been mentioned will be delete and won't be available in the sinatra
 `params` variable when your sinatra code block is invoked.
 
+## Error Messages
+
+Once an error occurs during validation, all the errors are kept in 3 environmental variables `@env['validator.messages']`,
+`@env['validator.invalid']` and `@env['validator.missing']`. All 3 variables are arrays. Check them out
+
+Error Format inside the 'validator.messages' variable looks something like this:
+
+```
+{
+  :name => "private", :error => :NOT_BOOLEAN
+}
+
+or
+
+{
+  :name => "age", :error => :NOT_IN_RANGE, :value => [ 0, 120 ]
+}
+```
+
+You can catch these errors and warp them around your own custom responses.
+
 ## Validator class
 
 A class with several methods to validate and clean data from sinatra params holder.
