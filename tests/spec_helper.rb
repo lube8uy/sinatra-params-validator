@@ -1,1 +1,1 @@
-require_relative "../lib/params_validator.rb"
+require_relative "../lib/rack/validator/sinatra"
